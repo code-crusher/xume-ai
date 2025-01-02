@@ -36,7 +36,7 @@ export const initExampleWorkflow = () => {
 
     const model = process.env.OPENAI_MODEL || "gpt-4o";
 
-    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}` }], llm, model));
+    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
         console.log("Result from Open AI: ", result);
         const response = await slack.sendMessage(JSON.parse(result?.input?.content));
