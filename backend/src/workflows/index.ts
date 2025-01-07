@@ -3,11 +3,11 @@
 import { ChatMessage, LLMProvider } from "../llms/index";
 import Persona from "../personas";
 
-// There are 5 steps any workflow can have:
+// There are 4 steps any workflow can have:
 // Chat with the LLM
+// Take user input
 // Make function calls with the integrations
 // Use guardrails to performs checks
-// Evaluate the result of the step using LLM to reduce hallucinations
 
 abstract class WorkflowStep {
     abstract execute(previousResult: any): Promise<any>;
@@ -29,7 +29,7 @@ class Workflow {
             if (currentStep instanceof ChatStep && nextStepSchema) {
                 const schemaMessage: ChatMessage = {
                     role: 'system',
-                    content: `Your response must conform to this schema: ${JSON.stringify(nextStepSchema.s)}`
+                    content: `Your response must conform to this schema in JSON format: ${JSON.stringify(nextStepSchema.s)}`
                 };
                 currentStep.addSystemMessage(schemaMessage);
             }
@@ -54,13 +54,14 @@ class CompleteStep extends WorkflowStep {
     constructor(
         private prompt: string,
         private llm: LLMProvider<any>,
-        private model: string
+        private model: string,
+        private persona: Persona
     ) {
         super();
     }
 
     async execute(previousResult: any): Promise<any> {
-        return await this.llm.complete(this.prompt, this.model, previousResult);
+        return await this.llm.complete(this.prompt, this.model, previousResult, this.persona);
     }
 
     addSystemMessage(message: ChatMessage) {

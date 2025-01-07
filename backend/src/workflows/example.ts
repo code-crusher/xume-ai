@@ -4,13 +4,6 @@ import { LLMFactory } from '../llms/index';
 import Persona from '../personas';
 import { ChatStep, FunctionCallStep, Workflow } from './index';
 
-
-// TODO: Generate next step function and it's inputs via the LLM
-
-// workflow.addStep(new GuardrailStep(async (result) => {
-//     return result === "World";
-// }));
-
 export const initExampleWorkflow = () => {
 
     const exampleWorkflow = new Workflow();
@@ -24,6 +17,14 @@ export const initExampleWorkflow = () => {
                 n: "FunctionCallStep",
                 fn: "slack.sendMessage",
                 s: slack.sendMessage.schema
+            },
+            {
+                n: "ChatStep",
+            },
+            {
+                n: "FunctionCallStep",
+                fn: "postgres.executeQuery",
+                s: postgres.executeQuery.schema
             }
         ]
     )
@@ -37,7 +38,7 @@ export const initExampleWorkflow = () => {
 
     const model = process.env.OPENAI_MODEL || "gpt-4o";
 
-    const persona = new Persona({
+    const hrPersona = new Persona({
         name: "John Doe",
         description: "A friendly and welcoming HR",
         systemPrompt: "You are a friendly and welcoming HR and people ops person",
@@ -45,18 +46,24 @@ export const initExampleWorkflow = () => {
         constraints: ["You should never be rude or mean to anyone", "Always prefer brevity over verbosity"]
     });
 
-    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], persona, llm, model));
+    const dbPersona = new Persona({
+        name: "John Doe",
+        description: "A profient database admin",
+        systemPrompt: "You are a profient database admin who writes SQL queries for Postgres",
+        traits: ["proficient", "efficient", "meticulous"],
+        constraints: ["You should never make mistakes in SQL queries", "You should never delete data from the database"]
+    });
+
+    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], hrPersona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
-        console.log("Result from Open AI: ", result);
-        const response = await slack.sendMessage(JSON.parse(result?.input?.content));
+        const response = await slack.sendMessage(result?.input?.content);
         console.log("Response from Slack: ", response);
         return response;
     }));
-    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: "Generate INSERT SQL statement to save the following data in Users table with columns name, slack_message_id, created_at" }], persona, llm, model));
+    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: "Generate INSERT SQL statement to save the following data in Users table with columns name, slack_message_id, created_at" }], dbPersona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
         console.log("Result from Open AI 2: ", result);
-        const response = await postgres.saveDataInPostgres(result);
-        console.log("Response from Postgres: ", response);
+        const response = await postgres.executeQuery(result?.input?.content);
         return response;
     }));
 

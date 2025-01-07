@@ -1,15 +1,11 @@
-
-
-const saveDataInPostgres = async (data: any) => {
-    console.log(data);
+const executeQuery = async (data: any) => {
+    console.log(data?.query);
 }
 
-saveDataInPostgres.schema = {
-    table: "string",
-    columns: "string[]",
-    values: "any[]"
+executeQuery.schema = {
+    query: "string"
 }
 
 export default {
-    saveDataInPostgres
+    executeQuery
 }

@@ -27,9 +27,10 @@ Description: ${persona.getDescription()}`
                     ? [...messages, { role: "assistant" as const, content: JSON.stringify(previousResult) }]
                     : messages)
             ],
+            response_format: { type: "json_object" }
         });
         return {
-            content: response.choices[0].message.content ?? "",
+            content: response.choices[0].message.content ? JSON.parse(response.choices[0].message.content) : "",
             model: model,
         };
     }
