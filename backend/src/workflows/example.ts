@@ -57,12 +57,10 @@ export const initExampleWorkflow = () => {
     exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], hrPersona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
         const response = await slack.sendMessage(result?.input?.content);
-        console.log("Response from Slack: ", response);
         return response;
     }));
     exampleWorkflow.addStep(new ChatStep([{ role: "user", content: "Generate INSERT SQL statement to save the following data in Users table with columns name, slack_message_id, created_at" }], dbPersona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
-        console.log("Result from Open AI 2: ", result);
         const response = await postgres.executeQuery(result?.input?.content);
         return response;
     }));
