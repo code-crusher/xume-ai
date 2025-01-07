@@ -1,6 +1,7 @@
 // workflows are a way to define a sequence of steps that can be executed in a specific order. They can be used to automate tasks, or to create a new workflow.
 
 import { ChatMessage, LLMProvider } from "../llms/index";
+import Persona from "../personas";
 
 // There are 5 steps any workflow can have:
 // Chat with the LLM
@@ -71,6 +72,7 @@ class CompleteStep extends WorkflowStep {
 class ChatStep extends WorkflowStep {
     constructor(
         private messages: ChatMessage[],
+        private persona: Persona,
         private llm: LLMProvider<any>,
         private model: string
     ) {
@@ -78,7 +80,7 @@ class ChatStep extends WorkflowStep {
     }
 
     async execute(previousResult: any): Promise<any> {
-        return await this.llm.chat(this.messages, this.model, previousResult);
+        return await this.llm.chat(this.messages, this.model, previousResult, this.persona);
     }
 
     addSystemMessage(message: ChatMessage) {

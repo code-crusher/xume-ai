@@ -1,3 +1,4 @@
+import Persona from "../personas";
 import { LLMFactory, ChatMessage, LLMProvider, LLMResponse } from "./index";
 
 import { OpenAI } from "openai";
@@ -5,10 +6,27 @@ import { OpenAI } from "openai";
 class OpenAIProvider implements LLMProvider<OpenAI> {
     constructor(public llm: OpenAI) { }
 
-    async chat(messages: ChatMessage[], model: string, previousResult: any): Promise<LLMResponse> {
+    async chat(messages: ChatMessage[], model: string, previousResult: any, persona: Persona): Promise<LLMResponse> {
+        const systemMessage: OpenAI.Chat.ChatCompletionMessageParam = {
+            role: "system",
+            content: `${persona.getSystemPrompt()}
+
+You have the following traits: ${persona.getTraits().join(", ")}
+
+You must follow these constraints:
+${persona.getConstraints().map(c => `- ${c}`).join("\n")}
+
+Description: ${persona.getDescription()}`
+        };
+
         const response = await this.llm.chat.completions.create({
             model: model,
-            messages: previousResult ? [...messages, { role: "assistant", content: JSON.stringify(previousResult) }] : messages,
+            messages: [
+                systemMessage,
+                ...(previousResult
+                    ? [...messages, { role: "assistant" as const, content: JSON.stringify(previousResult) }]
+                    : messages)
+            ],
         });
         return {
             content: response.choices[0].message.content ?? "",
@@ -16,7 +34,7 @@ class OpenAIProvider implements LLMProvider<OpenAI> {
         };
     }
 
-    async complete(prompt: string, model: string, previousResult: any): Promise<LLMResponse> {
+    async complete(prompt: string, model: string, previousResult: any, persona: Persona): Promise<LLMResponse> {
         const response = await this.llm.completions.create({
             model: model,
             prompt: previousResult ? `${prompt}\n\n${previousResult}` : prompt,

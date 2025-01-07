@@ -1,3 +1,5 @@
+import Persona from "../personas";
+
 export interface LLMResponse {
   content: string;
   model: string;
@@ -15,8 +17,8 @@ export interface ChatMessage {
 
 export interface LLMProvider<T> {
   llm: T;
-  chat(messages: ChatMessage[], model: string, previousResult: any): Promise<LLMResponse>;
-  complete(prompt: string, model: string, previousResult: any): Promise<LLMResponse>;
+  chat(messages: ChatMessage[], model: string, previousResult: any, persona: Persona): Promise<LLMResponse>;
+  complete(prompt: string, model: string, previousResult: any, persona: Persona): Promise<LLMResponse>;
 }
 
 class LLMFactory {

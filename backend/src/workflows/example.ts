@@ -1,6 +1,7 @@
 import postgres from '../integrations/postgres';
 import slack from '../integrations/slack';
 import { LLMFactory } from '../llms/index';
+import Persona from '../personas';
 import { ChatStep, FunctionCallStep, Workflow } from './index';
 
 
@@ -36,14 +37,22 @@ export const initExampleWorkflow = () => {
 
     const model = process.env.OPENAI_MODEL || "gpt-4o";
 
-    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], llm, model));
+    const persona = new Persona({
+        name: "John Doe",
+        description: "A friendly and welcoming HR",
+        systemPrompt: "You are a friendly and welcoming HR and people ops person",
+        traits: ["friendly", "welcoming", "empathetic"],
+        constraints: ["You should never be rude or mean to anyone", "Always prefer brevity over verbosity"]
+    });
+
+    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: `Generate a welcome message for the user ${inputs.userName} in Slack channel with id ${inputs.slackChannelId}. Make it fun, welcoming and short.` }], persona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
         console.log("Result from Open AI: ", result);
         const response = await slack.sendMessage(JSON.parse(result?.input?.content));
         console.log("Response from Slack: ", response);
         return response;
     }));
-    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: "Generate INSERT SQL statement to save the following data in Users table with columns name, slack_message_id, created_at" }], llm, model));
+    exampleWorkflow.addStep(new ChatStep([{ role: "user", content: "Generate INSERT SQL statement to save the following data in Users table with columns name, slack_message_id, created_at" }], persona, llm, model));
     exampleWorkflow.addStep(new FunctionCallStep(async (result) => {
         console.log("Result from Open AI 2: ", result);
         const response = await postgres.saveDataInPostgres(result);
