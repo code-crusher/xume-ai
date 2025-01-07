@@ -24,3 +24,44 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Framework
+
+backend/src/
+├── llms // LLM providers
+├── integrations // External services
+├── workflows // Agent workflows and steps
+├── knowledge // Vectorized knowledge base
+├── personas // Agent personas
+├── guardrails // Agent guardrails
+
+
+## Supported LLMs
+
+| LLM Provider | Status |
+|--------------|--------|
+| OpenAI       | ✅     |
+| Anthropic    | ❌     |
+| Google PaLM  | ❌     |
+| Cohere       | ❌     |
+| Llama 2      | ❌     |
+| Mistral AI   | ❌     |
+
+## Supported External Services
+
+| External Service | Status |
+|------------------|--------|
+| Slack            | ✅     |
+| Github           | ❌     |
+| Postgres         | ❌     |
+| MongoDB          | ❌     |
+| Linear           | ❌     |
+
+
+## Supported Guardrails
+
+- TBD
+
+## Supported Vector Databases
+
+- TBD
