@@ -30,7 +30,7 @@ Description: ${persona.getDescription()}`
             response_format: { type: "json_object" }
         });
         return {
-            content: response.choices[0].message.content ? JSON.parse(response.choices[0].message.content) : "",
+            content: response.choices[0].message.content ? JSON.parse(response.choices[0].message.content?.trim()) : "",
             model: model,
         };
     }
@@ -49,8 +49,12 @@ Description: ${persona.getDescription()}`
 
 const initOpenAI = async () => {
     // Register a provider with an LLM instance
-    console.log("Initializing OpenAI provider: ", process.env.OPENAI_API_KEY)
-    const openAIInstance = new OpenAI({ apiKey: process.env.OPENAI_API_KEY as string });
+    console.log("Initializing OpenAI provider: ", JSON.parse(process.env.OPEN_AI_DEFAULT_HEADERS as string))
+    const openAIInstance = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY as string,
+        baseURL: process.env.OPEN_AI_URL as string,
+        defaultHeaders: process.env.OPEN_AI_DEFAULT_HEADERS ? JSON.parse(process.env.OPEN_AI_DEFAULT_HEADERS as string) : {}
+    });
     LLMFactory.registerProvider('openai', new OpenAIProvider(openAIInstance));
 }
 

@@ -1,9 +1,9 @@
 const executeQuery = async (data: any) => {
-    console.log(data?.query);
+    console.log(data?.sqlQuery);
 }
 
 executeQuery.schema = {
-    query: "string"
+    sqlQuery: "string"
 }
 
 export default {

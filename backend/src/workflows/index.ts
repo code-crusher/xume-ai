@@ -29,7 +29,7 @@ class Workflow {
             if (currentStep instanceof ChatStep && nextStepSchema) {
                 const schemaMessage: ChatMessage = {
                     role: 'system',
-                    content: `Your response must conform to this schema in JSON format: ${JSON.stringify(nextStepSchema.s)}`
+                    content: `Your response must conform to the schema in the following JSON format: ${JSON.stringify(nextStepSchema.s)}. No additional text or comments are allowed.`
                 };
                 currentStep.addSystemMessage(schemaMessage);
             }
