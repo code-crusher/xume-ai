@@ -37,15 +37,13 @@ backend/src/
 
 
 ## Supported LLMs
+We are using OpenAI SDK which supports `OPEN_AI_URL`, `OPENAI_MODEL`, `OPENAI_API_KEY` and `OPEN_AI_DEFAULT_HEADERS` to be passed as environment variables.
 
 | LLM Provider | Status |
 |--------------|--------|
 | OpenAI       | ✅     |
-| Anthropic    | ❌     |
-| Google PaLM  | ❌     |
-| Cohere       | ❌     |
-| Llama 2      | ❌     |
-| Mistral AI   | ❌     |
+| Anthropic    | ✅     |
+| Groq         | ✅     |
 
 ## Supported External Services
 

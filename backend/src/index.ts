@@ -1,9 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import initOpenAI from './llms/openai'
 import { initExampleWorkflow } from './workflows/example'
-
-initOpenAI();
 
 // Create a new Hono app instance
 const app = new Hono()

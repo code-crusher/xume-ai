@@ -1,22 +1,22 @@
 import Persona from "../personas";
-import { LLMFactory, ChatMessage, LLMProvider, LLMResponse } from "./index";
+import { ChatMessage, LLMFactory, LLMProvider, LLMResponse } from "./index";
 
 import { OpenAI } from "openai";
 
 class OpenAIProvider implements LLMProvider<OpenAI> {
     constructor(public llm: OpenAI) { }
 
-    async chat(messages: ChatMessage[], model: string, previousResult: any, persona: Persona): Promise<LLMResponse> {
+    async chat(messages: ChatMessage[], model: string, previousResult: any | null, persona: Persona | null): Promise<LLMResponse> {
         const systemMessage: OpenAI.Chat.ChatCompletionMessageParam = {
             role: "system",
-            content: `${persona.getSystemPrompt()}
+            content: `${persona?.getSystemPrompt()}
 
-You have the following traits: ${persona.getTraits().join(", ")}
+You have the following traits: ${persona?.getTraits().join(", ")}
 
 You must follow these constraints:
-${persona.getConstraints().map(c => `- ${c}`).join("\n")}
+${persona?.getConstraints().map(c => `- ${c}`).join("\n")}
 
-Description: ${persona.getDescription()}`
+Description: ${persona?.getDescription()}`
         };
 
         const response = await this.llm.chat.completions.create({
@@ -42,6 +42,17 @@ Description: ${persona.getDescription()}`
         });
         return {
             content: response.choices[0].text ?? "",
+            model: model,
+        };
+    }
+
+    async embedding(prompt: string, model: string, previousResult: any | null, persona: Persona | null): Promise<LLMResponse> {
+        const response = await this.llm.embeddings.create({
+            model: model,
+            input: [prompt],
+        });
+        return {
+            content: response.data[0].embedding,
             model: model,
         };
     }

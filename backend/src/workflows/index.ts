@@ -1,5 +1,6 @@
 // workflows are a way to define a sequence of steps that can be executed in a specific order. They can be used to automate tasks, or to create a new workflow.
 
+import { VectorDBProvider } from "../knowledge";
 import { ChatMessage, LLMProvider } from "../llms/index";
 import Persona from "../personas";
 
@@ -75,12 +76,41 @@ class ChatStep extends WorkflowStep {
         private messages: ChatMessage[],
         private persona: Persona,
         private llm: LLMProvider<any>,
-        private model: string
+        private model: string,
+        private vectorDBConfig?: {
+            vectorDB: VectorDBProvider<any>;
+            collectionName: string;
+            topK: number;
+        }
     ) {
         super();
     }
 
     async execute(previousResult: any): Promise<any> {
+        let augmentedMessages = [...this.messages];
+
+        if (this.vectorDBConfig) {
+            const { vectorDB, collectionName, topK } = this.vectorDBConfig;
+            await vectorDB.initialize({ collectionName });
+            
+            // Get the last user message for context search
+            const lastUserMessage = this.messages.find(m => m.role === 'user')?.content || '';
+            
+            // Get embedding for the query
+            const queryEmbedding = await this.llm.embedding(lastUserMessage, this.model, previousResult, this.persona);
+            
+            // Search vector DB
+            const searchResults = await vectorDB.similaritySearch(queryEmbedding?.content, topK);
+            
+            if (searchResults.documents.length > 0) {
+                // Add documentation context as a system message
+                augmentedMessages.unshift({
+                    role: 'system',
+                    content: `Relevant documentation:\n\n${searchResults.documents.map(r => r.text).join('\n\n')}\n\nUse this information to provide an accurate response while maintaining the conversation style.`
+                });
+            }
+        }
+
         return await this.llm.chat(this.messages, this.model, previousResult, this.persona);
     }
 
@@ -113,4 +143,5 @@ class GuardrailStep extends WorkflowStep {
     }
 }
 
-export { Workflow, ChatStep, FunctionCallStep, GuardrailStep, CompleteStep };
+export { ChatStep, CompleteStep, FunctionCallStep, GuardrailStep, Workflow };
+
